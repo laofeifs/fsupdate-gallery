@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# FreeStyle每周四更新脚本
-# 使用方法: ./update_weekly.sh
+# FreeStyle每周四安全更新脚本
+# 使用方法: ./update_weekly_safe.sh
 
-echo "🚀 开始FreeStyle每周更新流程..."
+echo "🚀 开始FreeStyle每周安全更新流程..."
 echo "=================================="
 
 # 检查更新包目录
@@ -15,11 +15,29 @@ fi
 
 echo "✅ 找到更新包目录"
 
-# 备份当前image_data.js
-if [ -f "image_data.js" ]; then
-    cp image_data.js image_data_backup_$(date +%Y%m%d_%H%M%S).js
-    echo "✅ 已备份当前image_data.js"
-fi
+# 创建备份目录
+BACKUP_DIR="backup_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+echo "📁 创建备份目录: $BACKUP_DIR"
+
+# 备份重要文件
+echo "💾 备份重要文件..."
+cp index.html "$BACKUP_DIR/"
+cp qr_code.html "$BACKUP_DIR/"
+cp image_data.js "$BACKUP_DIR/" 2>/dev/null || echo "⚠️ 没有找到旧的image_data.js"
+cp *.md "$BACKUP_DIR/" 2>/dev/null || echo "⚠️ 没有找到Markdown文件"
+cp *.sh "$BACKUP_DIR/" 2>/dev/null || echo "⚠️ 没有找到脚本文件"
+
+# 清理所有图片相关文件夹
+echo "🧹 清理所有旧的图片文件夹..."
+find . -maxdepth 1 -type d \( -name "res*" -o -name "ur_*" -o -name "u_*" -o -name "icon*" -o -name "effect*" -o -name "title*" -o -name "ActionSlot*" -o -name "sap*" \) -exec rm -rf {} + 2>/dev/null || true
+
+# 清理旧的图片数据文件
+echo "🗑️ 清理旧的图片数据文件..."
+rm -f image_data.js
+rm -f image_data_backup_*.js
+
+echo "✅ 清理完成"
 
 # 运行Python分析脚本
 echo "📊 运行图片分析脚本..."
@@ -42,18 +60,18 @@ else
     exit 1
 fi
 
-# 清理旧的图片文件夹（保留HTML和JS文件）
-echo "🧹 清理旧的图片文件夹..."
-find . -maxdepth 1 -type d \( -name "res*" -o -name "ur_*" -o -name "u_*" -o -name "icon*" -o -name "effect*" -o -name "title*" -o -name "ActionSlot*" -o -name "sap*" \) -exec rm -rf {} + 2>/dev/null || true
-echo "✅ 已清理旧的图片文件夹"
-
 # 复制新的图片文件夹
 echo "🖼️ 复制新的图片文件夹..."
-cp -r fsupdate_extracted_images/* .
+cp -r fsupdate_extracted_images/* fsupdate_github_pages/
 echo "✅ 已复制新的图片文件夹"
 
 # 返回GitHub Pages目录
 cd fsupdate_github_pages
+
+# 检查文件数量
+echo "📊 检查更新结果..."
+NEW_IMAGE_COUNT=$(find . -name "*.png" -o -name "*.jpg" | wc -l)
+echo "✅ 新图片数量: $NEW_IMAGE_COUNT"
 
 # 检查Git状态
 echo "🔍 检查Git状态..."
@@ -64,7 +82,7 @@ echo "📝 添加文件到Git..."
 git add .
 
 # 提交更改
-COMMIT_MSG="更新FreeStyle图片资源 - $(date +%Y-%m-%d)"
+COMMIT_MSG="完全更新FreeStyle图片资源 - $(date +%Y-%m-%d) - 图片数量: $NEW_IMAGE_COUNT"
 echo "💾 提交更改: $COMMIT_MSG"
 git commit -m "$COMMIT_MSG"
 
@@ -73,13 +91,16 @@ echo "🚀 推送到GitHub..."
 git push origin main
 
 if [ $? -eq 0 ]; then
-    echo "✅ 更新成功完成！"
+    echo "✅ 安全更新成功完成！"
     echo "🌐 网站地址: https://laofeifs.github.io/fsupdate-gallery/"
     echo "📱 二维码页面: https://laofeifs.github.io/fsupdate-gallery/qr_code.html"
+    echo "📁 备份位置: $BACKUP_DIR"
 else
     echo "❌ 推送失败，请检查网络连接或重试"
+    echo "📁 备份文件在: $BACKUP_DIR"
     exit 1
 fi
 
 echo "=================================="
-echo "🎉 FreeStyle每周更新流程完成！" 
+echo "🎉 FreeStyle每周安全更新流程完成！"
+echo "💡 提示: 旧文件已备份到 $BACKUP_DIR 目录" 
