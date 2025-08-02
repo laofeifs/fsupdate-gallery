@@ -118,10 +118,25 @@
         
         <div style="margin-top: 30px; color: #6c757d;">
             <p>老非制作 | 版本: 5.1.8.0</p>
+            <div class="visit-counter" style="margin-top: 10px; font-size: 0.9em;">
+                <span>访问次数: </span>
+                <span id="visitCount">加载中...</span>
+            </div>
         </div>
     </div>
     
     <script>
+        // 访问统计功能
+        function updateVisitCount() {
+            const count = localStorage.getItem('visitCount') || 0;
+            const newCount = parseInt(count) + 1;
+            localStorage.setItem('visitCount', newCount);
+            document.getElementById('visitCount').textContent = newCount;
+        }
+
+        // 页面加载时更新访问次数
+        updateVisitCount();
+
         function copyLink() {
             const linkText = document.getElementById('linkText').textContent;
             navigator.clipboard.writeText(linkText).then(function() {

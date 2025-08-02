@@ -399,6 +399,13 @@
                 <button onclick="nextPage()" id="nextBtn">下一页</button>
             </div>
         </div>
+        <div class="footer">
+            <p>老非制作 | 版本: 5.1.8.0</p>
+            <div class="visit-counter">
+                <span>访问次数: </span>
+                <span id="visitCount">加载中...</span>
+            </div>
+        </div>
     </div>
     
     <!-- 图片详情模态框 -->
@@ -631,6 +638,17 @@
                 modal.style.display = 'none';
             }
         }
+
+        // 访问统计功能
+        function updateVisitCount() {
+            const count = localStorage.getItem('visitCount') || 0;
+            const newCount = parseInt(count) + 1;
+            localStorage.setItem('visitCount', newCount);
+            document.getElementById('visitCount').textContent = newCount;
+        }
+
+        // 页面加载时更新访问次数
+        updateVisitCount();
     </script>
 </body>
 </html> 
