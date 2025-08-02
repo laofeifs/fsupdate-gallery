@@ -294,11 +294,22 @@
                 align-items: stretch;
             }
             .image-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
             }
             .image-preview {
-                height: 120px;
+                height: 100px;
+            }
+            .image-card {
+                padding: 8px;
+            }
+            .image-name {
+                font-size: 0.8em;
+                margin-top: 5px;
+            }
+            .image-details {
+                font-size: 0.7em;
+                margin-top: 3px;
             }
             .modal-content {
                 width: 95%;
@@ -307,6 +318,28 @@
             }
             .modal-image {
                 max-height: 400px;
+            }
+        }
+        
+        /* 超小屏幕优化 */
+        @media (max-width: 480px) {
+            .image-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 8px;
+            }
+            .image-preview {
+                height: 80px;
+            }
+            .image-card {
+                padding: 6px;
+            }
+            .image-name {
+                font-size: 0.7em;
+                margin-top: 3px;
+            }
+            .image-details {
+                font-size: 0.6em;
+                margin-top: 2px;
             }
         }
     </style>
