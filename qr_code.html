@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>街头篮球图片集 - 扫码访问</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .qr-section {
+            margin: 30px 0;
+        }
+        .qr-code {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .qr-code img {
+            max-width: 200px;
+            height: auto;
+        }
+        .link-section {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .link-text {
+            font-family: monospace;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+        }
+        .copy-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+        .features {
+            text-align: left;
+            margin: 30px 0;
+        }
+        .features h3 {
+            color: #495057;
+        }
+        .features ul {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ 街头篮球7月31日更新文件图片集</h1>
+            <p>扫码即可在手机上浏览所有图片</p>
+        </div>
+        
+        <div class="qr-section">
+            <h2>📱 手机扫码访问</h2>
+            <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://laofeifs.github.io/fsupdate-gallery/" alt="二维码">
+            </div>
+            <p>用微信扫一扫上面的二维码即可访问</p>
+        </div>
+        
+        <div class="link-section">
+            <h3>🔗 直接访问链接</h3>
+            <div class="link-text" id="linkText">https://laofeifs.github.io/fsupdate-gallery/</div>
+            <button class="copy-btn" onclick="copyLink()">复制链接</button>
+        </div>
+        
+        <div class="features">
+            <h3>✨ 网站功能特点</h3>
+            <ul>
+                <li>📱 移动端完美适配，手机浏览体验极佳</li>
+                <li>🖼️ 智能图片筛选（徽记、标题、特效、图标等）</li>
+                <li>📄 分页浏览，每页显示50张图片</li>
+                <li>🔍 点击图片查看大图，支持图片导航</li>
+                <li>⚡ 快速加载，优化的图片显示性能</li>
+                <li>🎨 美观的现代化界面设计</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 30px; color: #6c757d;">
+            <p>老非制作 | 版本: 5.1.8.0</p>
+        </div>
+    </div>
+    
+    <script>
+        function copyLink() {
+            const linkText = document.getElementById('linkText').textContent;
+            navigator.clipboard.writeText(linkText).then(function() {
+                alert('链接已复制到剪贴板！');
+            }).catch(function(err) {
+                // 如果剪贴板API不可用，使用传统方法
+                const textArea = document.createElement('textarea');
+                textArea.value = linkText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('链接已复制到剪贴板！');
+            });
+        }
+    </script>
+</body>
+</html> 
