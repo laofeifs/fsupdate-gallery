@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Microsoft YaHei', Arial, sans-serif;
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            background: linear-gradient(135deg, #000000 0%, #0a0a0a 20%, #1a0a1a 40%, #0a1a2a 60%, #1a0a2a 80%, #2a0a1a 100%);
             color: #333;
             min-height: 100vh;
             position: relative;
@@ -32,18 +32,47 @@
             width: 100%;
             height: 100%;
             background-image: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-            animation: backgroundShift 20s ease-in-out infinite;
+                radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 150, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 255, 200, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(255, 100, 0, 0.1) 0%, transparent 50%);
+            animation: backgroundShift 25s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        /* 添加浮动粒子效果 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(0, 212, 255, 0.8), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255, 0, 150, 0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(0, 255, 200, 0.8), transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255, 100, 0, 0.8), transparent),
+                radial-gradient(2px 2px at 160px 30px, rgba(0, 212, 255, 0.8), transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: particleFloat 15s linear infinite;
             z-index: -1;
         }
 
         @keyframes backgroundShift {
-            0%, 100% { transform: translateX(0) translateY(0); }
-            25% { transform: translateX(-10px) translateY(-10px); }
-            50% { transform: translateX(10px) translateY(-5px); }
-            75% { transform: translateX(-5px) translateY(10px); }
+            0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+            25% { transform: translateX(-15px) translateY(-15px) rotate(1deg); }
+            50% { transform: translateX(15px) translateY(-10px) rotate(-1deg); }
+            75% { transform: translateX(-10px) translateY(15px) rotate(0.5deg); }
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translateY(0px) translateX(0px); }
+            25% { transform: translateY(-10px) translateX(5px); }
+            50% { transform: translateY(-5px) translateX(-5px); }
+            75% { transform: translateY(-15px) translateX(3px); }
+            100% { transform: translateY(0px) translateX(0px); }
         }
 
         .container {
@@ -56,12 +85,12 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(25px);
             border-radius: 25px;
             padding: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 212, 255, 0.1);
             position: relative;
             overflow: hidden;
         }
@@ -103,18 +132,25 @@
 
         .header .subtitle {
             font-size: 1.3em;
-            color: #b8c5d6;
-            opacity: 0.9;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            opacity: 0.95;
+            text-shadow: 0 2px 8px rgba(0, 212, 255, 0.6);
             margin-bottom: 10px;
+            font-weight: 500;
         }
 
         .header .powered-by {
             font-size: 1em;
             color: #00d4ff;
-            opacity: 0.8;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            opacity: 0.9;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
             font-weight: bold;
+            animation: poweredByGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes poweredByGlow {
+            from { text-shadow: 0 0 15px rgba(0, 212, 255, 0.8); }
+            to { text-shadow: 0 0 25px rgba(0, 212, 255, 1), 0 0 35px rgba(0, 212, 255, 0.6); }
         }
 
         .controls {
@@ -126,15 +162,16 @@
         }
 
         .search-box, .filter-box {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
             border-radius: 20px;
             padding: 18px 25px;
             color: white;
             font-size: 1.1em;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .search-box:focus, .filter-box:focus {
@@ -152,14 +189,14 @@
         .image-count {
             text-align: center;
             margin-bottom: 30px;
-            color: #b8c5d6;
+            color: #ffffff;
             font-size: 1.2em;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
             border-radius: 15px;
             padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 212, 255, 0.1);
         }
 
         .image-grid {
@@ -170,16 +207,16 @@
         }
 
         .image-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
             border-radius: 20px;
             padding: 20px;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .image-card::before {
@@ -199,9 +236,9 @@
 
         .image-card:hover {
             transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 212, 255, 0.3);
             border-color: #00d4ff;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(0, 212, 255, 0.1);
         }
 
         .image-preview {
@@ -251,9 +288,9 @@
         }
 
         .pagination button {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
             color: white;
             padding: 12px 20px;
             border-radius: 15px;
@@ -261,6 +298,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 1em;
             font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .pagination button:hover {
@@ -403,14 +441,15 @@
             text-align: center;
             margin-top: 40px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
             border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
         }
 
         .footer p {
-            color: #b8c5d6;
+            color: #ffffff;
             margin-bottom: 10px;
         }
 
