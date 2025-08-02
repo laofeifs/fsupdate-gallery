@@ -161,29 +161,39 @@
             justify-content: center;
         }
 
-        .search-box, .filter-box {
+        .category-tabs {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-btn {
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 212, 255, 0.3);
             border-radius: 20px;
-            padding: 18px 25px;
+            padding: 12px 20px;
             color: white;
-            font-size: 1.1em;
+            font-size: 1em;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 200px;
+            cursor: pointer;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
         }
 
-        .search-box:focus, .filter-box:focus {
-            outline: none;
+        .category-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
             border-color: #00d4ff;
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
-            transform: translateY(-3px) scale(1.02);
-            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
         }
 
-        .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+        .category-btn.active {
+            background: linear-gradient(45deg, #00d4ff, #4ecdc4);
+            border-color: #00d4ff;
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+            transform: translateY(-3px);
         }
 
         .image-count {
@@ -531,10 +541,16 @@
         </div>
 
         <div class="controls">
-            <input type="text" id="searchInput" class="search-box" placeholder="搜索图片名称..." oninput="filterImages()">
-            <select id="pakFilter" class="filter-box" onchange="filterImages()">
-                <option value="all">所有包</option>
-            </select>
+            <div class="category-tabs">
+                <button class="category-btn active" onclick="filterByCategory('all')">全部图片</button>
+                <button class="category-btn" onclick="filterByCategory('ur_emblem')">徽记图片</button>
+                <button class="category-btn" onclick="filterByCategory('title')">标题图片</button>
+                <button class="category-btn" onclick="filterByCategory('effect2')">特效图片</button>
+                <button class="category-btn" onclick="filterByCategory('icon')">图标图片</button>
+                <button class="category-btn" onclick="filterByCategory('res')">资源图片</button>
+                <button class="category-btn" onclick="filterByCategory('ur_event')">活动图片</button>
+                <button class="category-btn" onclick="filterByCategory('u_game')">游戏界面</button>
+            </div>
         </div>
 
         <div class="image-count" id="imageCount">加载中...</div>
@@ -709,16 +725,29 @@
             }
         }
 
-        // 筛选图片
-        function filterImages() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const selectedPak = document.getElementById('pakFilter').value;
-            
-            filteredImages = allImages.filter(image => {
-                const matchesSearch = image.name.toLowerCase().includes(searchTerm);
-                const matchesPak = selectedPak === 'all' || image.pak_name === selectedPak;
-                return matchesSearch && matchesPak;
+        // 按分类筛选图片
+        function filterByCategory(category) {
+            // 更新按钮状态
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
+            event.target.classList.add('active');
+            
+            if (category === 'all') {
+                filteredImages = allImages;
+            } else {
+                filteredImages = allImages.filter(image => {
+                    const pakName = image.pak_name;
+                    if (category === 'ur_emblem') return pakName.includes('ur_emblem');
+                    if (category === 'title') return pakName.includes('title');
+                    if (category === 'effect2') return pakName.includes('effect2');
+                    if (category === 'icon') return pakName.includes('icon');
+                    if (category === 'res') return pakName.startsWith('res');
+                    if (category === 'ur_event') return pakName.includes('ur_event');
+                    if (category === 'u_game') return pakName.includes('u_game');
+                    return false;
+                });
+            }
             
             currentPage = 1;
             displayImages();
@@ -776,19 +805,7 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // 更新包筛选器选项
-        function updatePakFilter() {
-            const pakFilter = document.getElementById('pakFilter');
-            const paks = [...new Set(allImages.map(img => img.pak_name))].sort();
-            
-            pakFilter.innerHTML = '<option value="all">所有包</option>';
-            paks.forEach(pak => {
-                const option = document.createElement('option');
-                option.value = pak;
-                option.textContent = pak;
-                pakFilter.appendChild(option);
-            });
-        }
+
 
         // 键盘事件处理
         document.addEventListener('keydown', function(e) {
@@ -805,9 +822,7 @@
         });
 
         // 初始化
-        loadImageData().then(() => {
-            updatePakFilter();
-        });
+        loadImageData();
     </script>
 </body>
 </html> 
