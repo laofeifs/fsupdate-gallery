@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试</title>
+</head>
+<body>
+    <h1>API测试页面</h1>
+    <button onclick="testAPI()">测试API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '正在测试...';
+            
+            try {
+                console.log('开始测试API...');
+                
+                const statsResponse = await fetch('http://localhost:5101/api/survey/stats');
+                console.log('Stats response status:', statsResponse.status);
+                
+                const resultsResponse = await fetch('http://localhost:5101/api/survey/results');
+                console.log('Results response status:', resultsResponse.status);
+                
+                if (statsResponse.ok && resultsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    const results = await resultsResponse.json();
+                    
+                    console.log('Stats data:', stats);
+                    console.log('Results data:', results);
+                    
+                    resultDiv.innerHTML = `
+                        <h3>API测试成功！</h3>
+                        <p>Stats: ${JSON.stringify(stats)}</p>
+                        <p>Results: ${JSON.stringify(results)}</p>
+                    `;
+                } else {
+                    throw new Error(`HTTP错误: stats=${statsResponse.status}, results=${resultsResponse.status}`);
+                }
+            } catch (error) {
+                console.error('API测试失败:', error);
+                resultDiv.innerHTML = `<h3>API测试失败</h3><p>错误: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.onload = testAPI;
+    </script>
+</body>
+</html>

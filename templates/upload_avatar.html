@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>给角色一键上传头像</title>
+  <style>
+    body{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial; padding:20px; background:#f8f9fa; }
+    .card{ max-width:520px; margin:20px auto; border:1px solid #eee; border-radius:12px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,.06); background:white; }
+    .row{ display:flex; gap:10px; align-items:center; margin-bottom:12px; }
+    input,select{ padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; }
+    input:focus,select:focus{ outline:none; border-color:#ff6b35; box-shadow:0 0 0 2px rgba(255,107,53,.2); }
+    button{ padding:10px 20px; background:#ff6b35; color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:500; transition:all 0.2s; }
+    button:hover:not(:disabled){ background:#e55a2b; transform:translateY(-1px); }
+    button:disabled{ background:#ccc; cursor:not-allowed; transform:none; }
+    .preview{ width:120px; height:120px; background:#f1f1f1 center/cover no-repeat; border:1px solid #eee; border-radius:10px; transition:all 0.2s; }
+    .preview:hover{ border-color:#ff6b35; }
+    .muted{ color:#777; font-size:12px; line-height:1.4; }
+    h2{ color:#333; margin-bottom:8px; }
+    label{ font-weight:500; color:#555; min-width:60px; }
+  </style>
+  <script>
+    async function loadCharacters(){
+      const sel = document.getElementById('cid');
+      sel.innerHTML = '';
+      
+      // 定义所有代际，包括小数代际
+      const generations = [1, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 9];
+      
+      for(let gen of generations){
+        const r = await fetch(`/api/characters?gen=${gen}`); const list = await r.json();
+        if(list.length===0) continue;
+        const optg = document.createElement('optgroup'); optg.label = `${gen}代`;
+        list.forEach(c=>{
+          const opt = document.createElement('option');
+          opt.value = c.id; opt.textContent = `${c.id} - ${c.name} (${c.position})`;
+          optg.appendChild(opt);
+        });
+        sel.appendChild(optg);
+      }
+    }
+
+    function onFile(){
+      const f = document.getElementById('file').files[0];
+      const pv = document.getElementById('pv');
+      const btn = document.getElementById('btn');
+      
+      if(!f){ 
+        pv.style.backgroundImage=''; 
+        btn.disabled = true;
+        return; 
+      }
+      
+      // 检查文件大小（限制为5MB）
+      if(f.size > 5 * 1024 * 1024){
+        alert('文件太大，请选择小于5MB的图片');
+        document.getElementById('file').value = '';
+        pv.style.backgroundImage = '';
+        btn.disabled = true;
+        return;
+      }
+      
+      // 检查文件类型
+      if(!f.type.startsWith('image/')){
+        alert('请选择图片文件');
+        document.getElementById('file').value = '';
+        pv.style.backgroundImage = '';
+        btn.disabled = true;
+        return;
+      }
+      
+      // 使用异步方式创建预览，避免阻塞UI
+      setTimeout(() => {
+        try {
+          const url = URL.createObjectURL(f);
+          pv.style.backgroundImage = `url(${url})`;
+          btn.disabled = false;
+        } catch(e) {
+          console.error('预览失败:', e);
+          alert('图片预览失败，请重试');
+        }
+      }, 100);
+    }
+
+    async function doUpload(){
+      const cid = document.getElementById('cid').value;
+      const file = document.getElementById('file').files[0];
+      if(!cid){ alert('请选择角色'); return; }
+      if(!file){ alert('请选择图片'); return; }
+      
+      const fd = new FormData(); 
+      fd.append('cid', cid); 
+      fd.append('file', file);
+      
+      const btn = document.getElementById('btn'); 
+      btn.disabled=true; 
+      btn.textContent='上传中...';
+      
+      const startTime = Date.now();
+      
+      try{
+        const r = await fetch('/api/upload-character-avatar', { 
+          method:'POST', 
+          body: fd 
+        });
+        const d = await r.json();
+        
+        const endTime = Date.now();
+        console.log(`上传耗时: ${endTime - startTime}ms`);
+        
+        if(!d.success){ 
+          alert(d.error||'上传失败'); 
+          return; 
+        }
+        alert('上传成功！');
+        
+        // 清理预览
+        const pv = document.getElementById('pv');
+        if(pv.style.backgroundImage){
+          const url = pv.style.backgroundImage.replace(/url\(['"]?(.*?)['"]?\)/, '$1');
+          URL.revokeObjectURL(url);
+          pv.style.backgroundImage = '';
+        }
+        
+      }catch(e){ 
+        console.error('上传错误:', e);
+        alert('上传失败: ' + e.message); 
+      }
+      finally{ 
+        btn.disabled=false; 
+        btn.textContent='上传'; 
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadCharacters);
+  </script>
+</head>
+<body>
+  <h2>给角色一键上传头像</h2>
+  <p class="muted">步骤：先选择角色，再选择图片，最后点击上传。后端会自动保存并更新该角色头像。</p>
+  <div class="card">
+    <div class="row" style="margin-bottom:8px;">
+      <label>角色：</label>
+      <select id="cid" style="min-width:320px;"></select>
+    </div>
+    <div class="row" style="margin-bottom:8px;">
+      <label>图片：</label>
+      <input id="file" type="file" accept="image/png,image/jpeg,image/webp" onchange="onFile()" />
+      <div id="pv" class="preview"></div>
+    </div>
+    <div class="muted" style="margin-bottom:8px;">
+      支持格式：PNG、JPEG、WebP，文件大小不超过5MB
+    </div>
+    <div><button id="btn" onclick="doUpload()" disabled>上传</button></div>
+  </div>
+
+  <p class="muted">提示：如需管理/删除图片，请使用 <a href="/admin" target="_blank">图片管理页</a>；如需新增/编辑角色，请使用 <a href="/cms" target="_blank">管理控制台</a>。</p>
+</body>
+</html>
+
+

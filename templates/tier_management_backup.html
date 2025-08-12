@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天梯排名管理</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial; 
+            margin: 0; 
+            padding: 20px; 
+            background: #f8fafc; 
+            color: #1e293b; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #4ade80, #22c55e); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        .content { 
+            padding: 20px; 
+        }
+        .controls { 
+            display: flex; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+            align-items: center; 
+            flex-wrap: wrap; 
+        }
+        .btn { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: all 0.2s; 
+        }
+        .btn-primary { 
+            background: #4ade80; 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            background: #22c55e; 
+            transform: translateY(-1px); 
+        }
+        .btn-secondary { 
+            background: #e2e8f0; 
+            color: #374151; 
+        }
+        .btn-secondary:hover { 
+            background: #cbd5e1; 
+        }
+        .character-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 15px; 
+            margin-top: 20px; 
+        }
+        .character-card { 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            padding: 15px; 
+            background: white; 
+            transition: all 0.2s; 
+        }
+        .character-card:hover { 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            transform: translateY(-2px); 
+        }
+        .character-header { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin-bottom: 12px; 
+        }
+        .character-avatar { 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 8px; 
+            background-size: cover; 
+            background-position: center; 
+            border: 2px solid #e2e8f0; 
+        }
+        .character-info { 
+            flex: 1; 
+        }
+        .character-name { 
+            font-weight: 600; 
+            font-size: 16px; 
+            margin-bottom: 4px; 
+        }
+        .character-meta { 
+            font-size: 12px; 
+            color: #64748b; 
+        }
+        .score-controls { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .score-input { 
+            width: 80px; 
+            padding: 8px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            text-align: center; 
+            font-weight: 600; 
+        }
+        .score-display { 
+            font-weight: 600; 
+            color: #4ade80; 
+            min-width: 40px; 
+        }
+        .tier-badge { 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            color: white; 
+        }
+        .tier-s { background: #ff6b6b; }
+        .tier-a { background: #ff8e53; }
+        .tier-b { background: #6bcf7f; }
+        .tier-c { background: #4dabf7; }
+        .tier-d { background: #adb5bd; }
+        .save-status { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            color: white; 
+            font-weight: 600; 
+            z-index: 1000; 
+            opacity: 0; 
+            transition: opacity 0.3s; 
+        }
+        .save-success { background: #4ade80; }
+        .save-error { background: #ef4444; }
+        .filter-controls { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+            flex-wrap: wrap; 
+        }
+        .filter-btn { 
+            padding: 8px 16px; 
+            border: 1px solid #d1d5db; 
+            background: white; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
+        .filter-btn.active { 
+            background: #4ade80; 
+            color: white; 
+            border-color: #4ade80; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>天梯排名管理</h1>
+            <p>自定义角色评分和天梯排名</p>
+        </div>
+        
+        <div class="content">
+            <div class="controls">
+                <button class="btn btn-primary" onclick="loadCharacters()">加载角色数据</button>
+                <button class="btn btn-secondary" onclick="saveRankings()">保存排名设置</button>
+                <button class="btn btn-secondary" onclick="resetScores()">重置评分</button>
+                <button class="btn btn-secondary" onclick="previewTierList()">预览天梯图</button>
+            </div>
+            
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">全部</button>
+                <button class="filter-btn" data-filter="C">C职业</button>
+                <button class="filter-btn" data-filter="PF">PF职业</button>
+                <button class="filter-btn" data-filter="PG">PG职业</button>
+                <button class="filter-btn" data-filter="SG">SG职业</button>
+                <button class="filter-btn" data-filter="SF">SF职业</button>
+            </div>
+            
+            <div class="character-grid" id="characterGrid">
+                <div style="text-align: center; padding: 40px; color: #64748b;">
+                    点击"加载角色数据"开始管理天梯排名
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="save-status" id="saveStatus"></div>
+    
+    <script>
+        const apiBase = window.location.origin;
+        let characters = [];
+        let currentFilter = 'all';
+        
+        // 加载所有角色数据
+        async function loadCharacters() {
+            try {
+                const response = await fetch(`${apiBase}/api/characters`);
+                const data = await response.json();
+                
+                // 获取所有代际的角色
+                const allCharacters = [];
+                for (let gen = 1; gen <= 9; gen++) {
+                    const genResponse = await fetch(`${apiBase}/api/characters?gen=gen${gen}`);
+                    const genData = await genResponse.json();
+                    allCharacters.push(...genData);
+                }
+                
+                characters = allCharacters;
+                renderCharacters();
+                showStatus('角色数据加载成功', 'success');
+            } catch (error) {
+                console.error('加载角色数据失败:', error);
+                showStatus('加载角色数据失败', 'error');
+            }
+        }
+        
+        // 渲染角色卡片
+        function renderCharacters() {
+            const grid = document.getElementById('characterGrid');
+            const filteredCharacters = currentFilter === 'all' 
+                ? characters 
+                : characters.filter(char => char.position === currentFilter);
+            
+            if (filteredCharacters.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">暂无角色数据</div>';
+                return;
+            }
+            
+            grid.innerHTML = filteredCharacters.map(char => {
+                const baseScore = 85 - (char.gen - 1) * 5;
+                const currentScore = char.score || baseScore;
+                const tier = getTier(currentScore);
+                
+                return `
+                    <div class="character-card" data-id="${char.id}">
+                        <div class="character-header">
+                            <div class="character-avatar" style="background-image: url('${char.avatar_url ? apiBase + char.avatar_url : ''}')"></div>
+                            <div class="character-info">
+                                <div class="character-name">${char.name}</div>
+                                <div class="character-meta">${char.gen}代</div>
+                            </div>
+                            <span class="tier-badge tier-${tier.toLowerCase()}">${tier}</span>
+                        </div>
+                        <div class="score-controls">
+                            <label>评分:</label>
+                            <input type="number" class="score-input" value="${currentScore}" min="60" max="100" 
+                                   onchange="updateScore(${char.id}, this.value)">
+                            <span class="score-display">${currentScore}分</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 获取天梯等级
+        function getTier(score) {
+            if (score >= 95) return 'S+';
+            if (score >= 90) return 'S';
+            if (score >= 85) return 'A+';
+            if (score >= 80) return 'A';
+            if (score >= 75) return 'B+';
+            if (score >= 70) return 'B';
+            return 'C';
+        }
+        
+        // 更新角色评分
+        function updateScore(id, score) {
+            const character = characters.find(char => char.id === id);
+            if (character) {
+                character.score = parseInt(score);
+                // 更新显示
+                const card = document.querySelector(`[data-id="${id}"]`);
+                if (card) {
+                    const tierBadge = card.querySelector('.tier-badge');
+                    const scoreDisplay = card.querySelector('.score-display');
+                    const newTier = getTier(score);
+                    
+                    tierBadge.className = `tier-badge tier-${newTier.toLowerCase()}`;
+                    tierBadge.textContent = newTier;
+                    scoreDisplay.textContent = `${score}分`;
+                }
+            }
+        }
+        
+        // 保存排名设置
+        async function saveRankings() {
+            try {
+                const tierData = characters.map(char => ({
+                    id: char.id,
+                    name: char.name,
+                    avatar_url: char.avatar_url,
+                    position: char.position,
+                    gen: char.gen,
+                    score: char.score || (85 - (char.gen - 1) * 5)
+                }));
+                
+                // 按分数排序
+                tierData.sort((a, b) => b.score - a.score);
+                
+                const response = await fetch(`${apiBase}/api/rankings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: 'ALL',
+                        items_json: JSON.stringify(tierData)
+                    })
+                });
+                
+                if (response.ok) {
+                    showStatus('排名设置保存成功', 'success');
+                } else {
+                    throw new Error('保存失败');
+                }
+            } catch (error) {
+                console.error('保存排名设置失败:', error);
+                showStatus('保存排名设置失败', 'error');
+            }
+        }
+        
+        // 重置评分
+        function resetScores() {
+            if (confirm('确定要重置所有角色的评分为默认值吗？')) {
+                characters.forEach(char => {
+                    char.score = 85 - (char.gen - 1) * 5;
+                });
+                renderCharacters();
+                showStatus('评分已重置', 'success');
+            }
+        }
+        
+        // 预览天梯图
+        function previewTierList() {
+            const sortedCharacters = [...characters].sort((a, b) => 
+                (b.score || (85 - (b.gen - 1) * 5)) - (a.score || (85 - (a.gen - 1) * 5))
+            );
+            
+            const tiers = [
+                { name: 'S+', minScore: 95, color: '#ff6b6b' },
+                { name: 'S', minScore: 90, color: '#ff8e53' },
+                { name: 'A+', minScore: 85, color: '#ffd93d' },
+                { name: 'A', minScore: 80, color: '#6bcf7f' },
+                { name: 'B+', minScore: 75, color: '#4dabf7' },
+                { name: 'B', minScore: 70, color: '#9775fa' },
+                { name: 'C', minScore: 0, color: '#adb5bd' }
+            ];
+            
+            let preview = '<h3>天梯图预览</h3><div style="display: flex; flex-direction: column; gap: 15px;">';
+            
+            tiers.forEach(tier => {
+                const tierCharacters = sortedCharacters.filter(char => 
+                    (char.score || (85 - (char.gen - 1) * 5)) >= tier.minScore
+                );
+                
+                if (tierCharacters.length > 0) {
+                    preview += `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: ${tier.color}20; border-radius: 8px;">
+                            <span style="background: ${tier.color}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;">${tier.name}</span>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                ${tierCharacters.map(char => `
+                                    <span style="background: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                        ${char.name} (${char.score || (85 - (char.gen - 1) * 5)}分)
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            preview += '</div>';
+            
+            alert('天梯图预览已生成，请查看控制台');
+            console.log('天梯图预览:', preview);
+        }
+        
+        // 显示状态消息
+        function showStatus(message, type) {
+            const status = document.getElementById('saveStatus');
+            status.textContent = message;
+            status.className = `save-status save-${type}`;
+            status.style.opacity = '1';
+            
+            setTimeout(() => {
+                status.style.opacity = '0';
+            }, 3000);
+        }
+        
+        // 筛选功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderCharacters();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

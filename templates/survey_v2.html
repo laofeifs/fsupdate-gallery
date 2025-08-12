@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超特角色排名调查 - 快速版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .wechat-info {
+            display: inline-block;
+            background: linear-gradient(135deg, #07c160 0%, #00d976 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-left: 10px;
+            box-shadow: 0 2px 8px rgba(7, 193, 96, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(7, 193, 96, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 4px 12px rgba(7, 193, 96, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(7, 193, 96, 0.3);
+            }
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .position-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .position-section:nth-child(2) { border-left-color: #28a745; }
+        .position-section:nth-child(3) { border-left-color: #ffc107; }
+        .position-section:nth-child(4) { border-left-color: #dc3545; }
+        .position-section:nth-child(5) { border-left-color: #17a2b8; }
+        .position-section:nth-child(6) { border-left-color: #6f42c1; }
+        .position-section:nth-child(7) { border-left-color: #fd7e14; }
+
+        .instruction-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instruction-box p {
+            margin: 0;
+            color: #1565c0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .ranking-slots {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            flex-direction: row-reverse;
+        }
+
+        .slot {
+            flex: 1;
+            min-width: 140px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .slot.filled {
+            border-color: #28a745;
+            background: #d4edda;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+        }
+
+        .slot-label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .slot-content {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot-character {
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        /* 第5名 - 灰色 */
+        .slot-character[data-rank="5"] {
+            background: #6c757d;
+            border-color: #495057;
+            color: white;
+        }
+
+        /* 第4名 - 绿色 */
+        .slot-character[data-rank="4"] {
+            background: #28a745;
+            border-color: #1e7e34;
+            color: white;
+        }
+
+        /* 第3名 - 蓝色 */
+        .slot-character[data-rank="3"] {
+            background: #007bff;
+            border-color: #0056b3;
+            color: white;
+        }
+
+        /* 第2名 - 紫色 */
+        .slot-character[data-rank="2"] {
+            background: #6f42c1;
+            border-color: #5a2d91;
+            color: white;
+        }
+
+        /* 第1名 - 金色 */
+        .slot-character[data-rank="1"] {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-color: #e6c200;
+            color: #8b6914;
+            font-weight: 700;
+        }
+
+        .slot-character:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .slot-character .remove-btn {
+            margin-left: 10px;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+
+        .slot-character .remove-btn:hover {
+            color: white;
+        }
+
+        /* 第1名金色卡片的移除按钮特殊样式 */
+        .slot-character[data-rank="1"] .remove-btn {
+            color: rgba(139, 105, 20, 0.8);
+        }
+
+        .slot-character[data-rank="1"] .remove-btn:hover {
+            color: #8b6914;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .position-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .position-tab {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .position-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .position-tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .ranking-method {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .method-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .method-description {
+            color: #424242;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .method-steps {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            background: #f5f5f5;
+        }
+
+        .step-number {
+            background: #2196f3;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .characters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .character-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .character-card.selected {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .character-card.ranked {
+            border-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .character-card.used {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .character-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .character-card.used .character-name {
+            color: #6c757d;
+        }
+
+
+
+        .ranking-controls {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .ranking-status {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .status-text {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .header p {
+                font-size: 16px;
+            }
+
+            .wechat-info {
+                display: block;
+                margin: 10px auto 0;
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .characters-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 10px;
+            }
+
+            .position-tabs {
+                flex-wrap: wrap;
+            }
+
+            .position-tab {
+                flex: 1 1 calc(33.333% - 10px);
+                margin: 2px;
+            }
+
+            .control-buttons {
+                flex-direction: column;
+            }
+
+            .quick-rank-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏀 老非喊你来给超特排名啦</h1>
+            <p>兄弟们根据自己感受从综合性能来排序 <span class="wechat-info">📱 微信号：laofei90186</span></p>
+        </div>
+
+        <div class="content">
+            <!-- C职业投票区域 -->
+            <div class="section position-section" data-position="C">
+                <h2 class="section-title">🏀 C职业排名</h2>
+                <div class="instruction-box">
+                    <p>💡 <strong>操作说明：</strong>直接点击角色卡片，自动正序排名（第1名→第2名→第3名→第4名→第5名）。每个职业独立排名，同一角色可参与多个职业排名！</p>
+                </div>
+                <div class="ranking-controls">
+                    <div class="ranking-status">
+                        <div class="status-text" data-position="C">C排名: 0 个角色</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-position="C" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-secondary clear-btn" data-position="C">清空C排名</button>
+                    </div>
+                </div>
+
+                <div class="ranking-slots" data-position="C">
+                    <div class="slot" data-rank="1">
+                        <div class="slot-label">第1名</div>
+                        <div class="slot-content" data-rank="1"></div>
+                    </div>
+                    <div class="slot" data-rank="2">
+                        <div class="slot-label">第2名</div>
+                        <div class="slot-content" data-rank="2"></div>
+                    </div>
+                    <div class="slot" data-rank="3">
+                        <div class="slot-label">第3名</div>
+                        <div class="slot-content" data-rank="3"></div>
+                    </div>
+                    <div class="slot" data-rank="4">
+                        <div class="slot-label">第4名</div>
+                        <div class="slot-content" data-rank="4"></div>
+                    </div>
+                    <div class="slot" data-rank="5">
+                        <div class="slot-label">第5名</div>
+                        <div class="slot-content" data-rank="5"></div>
+                    </div>
+                </div>
+
+                <div class="characters-grid" data-position="C">
+                    <!-- C职业角色卡片将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <!-- PF职业投票区域 -->
+            <div class="section position-section" data-position="PF">
+                <h2 class="section-title">🏀 PF职业排名</h2>
+                <div class="instruction-box">
+                    <p>💡 <strong>操作说明：</strong>直接点击角色卡片，自动正序排名（第1名→第2名→第3名→第4名→第5名）。每个职业独立排名，同一角色可参与多个职业排名！</p>
+                </div>
+                <div class="ranking-controls">
+                    <div class="ranking-status">
+                        <div class="status-text" data-position="PF">PF排名: 0 个角色</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-position="PF" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-secondary clear-btn" data-position="PF">清空PF排名</button>
+                    </div>
+                </div>
+
+                <div class="ranking-slots" data-position="PF">
+                    <div class="slot" data-rank="1">
+                        <div class="slot-label">第1名</div>
+                        <div class="slot-content" data-rank="1"></div>
+                    </div>
+                    <div class="slot" data-rank="2">
+                        <div class="slot-label">第2名</div>
+                        <div class="slot-content" data-rank="2"></div>
+                    </div>
+                    <div class="slot" data-rank="3">
+                        <div class="slot-label">第3名</div>
+                        <div class="slot-content" data-rank="3"></div>
+                    </div>
+                    <div class="slot" data-rank="4">
+                        <div class="slot-label">第4名</div>
+                        <div class="slot-content" data-rank="4"></div>
+                    </div>
+                    <div class="slot" data-rank="5">
+                        <div class="slot-label">第5名</div>
+                        <div class="slot-content" data-rank="5"></div>
+                    </div>
+                </div>
+
+                <div class="characters-grid" data-position="PF">
+                    <!-- PF职业角色卡片将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <!-- SF职业投票区域 -->
+            <div class="section position-section" data-position="SF">
+                <h2 class="section-title">🏀 SF职业排名</h2>
+                <div class="instruction-box">
+                    <p>💡 <strong>操作说明：</strong>直接点击角色卡片，自动正序排名（第1名→第2名→第3名→第4名→第5名）。每个职业独立排名，同一角色可参与多个职业排名！</p>
+                </div>
+                <div class="ranking-controls">
+                    <div class="ranking-status">
+                        <div class="status-text" data-position="SF">SF排名: 0 个角色</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-position="SF" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-secondary clear-btn" data-position="SF">清空SF排名</button>
+                    </div>
+                </div>
+
+                <div class="ranking-slots" data-position="SF">
+                    <div class="slot" data-rank="1">
+                        <div class="slot-label">第1名</div>
+                        <div class="slot-content" data-rank="1"></div>
+                    </div>
+                    <div class="slot" data-rank="2">
+                        <div class="slot-label">第2名</div>
+                        <div class="slot-content" data-rank="2"></div>
+                    </div>
+                    <div class="slot" data-rank="3">
+                        <div class="slot-label">第3名</div>
+                        <div class="slot-content" data-rank="3"></div>
+                    </div>
+                    <div class="slot" data-rank="4">
+                        <div class="slot-label">第4名</div>
+                        <div class="slot-content" data-rank="4"></div>
+                    </div>
+                    <div class="slot" data-rank="5">
+                        <div class="slot-label">第5名</div>
+                        <div class="slot-content" data-rank="5"></div>
+                    </div>
+                </div>
+
+                <div class="characters-grid" data-position="SF">
+                    <!-- SF职业角色卡片将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <!-- SG职业投票区域 -->
+            <div class="section position-section" data-position="SG">
+                <h2 class="section-title">🏀 SG职业排名</h2>
+                <div class="instruction-box">
+                    <p>💡 <strong>操作说明：</strong>直接点击角色卡片，自动正序排名（第1名→第2名→第3名→第4名→第5名）。每个职业独立排名，同一角色可参与多个职业排名！</p>
+                </div>
+                <div class="ranking-controls">
+                    <div class="ranking-status">
+                        <div class="status-text" data-position="SG">SG排名: 0 个角色</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-position="SG" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-secondary clear-btn" data-position="SG">清空SG排名</button>
+                    </div>
+                </div>
+
+                <div class="ranking-slots" data-position="SG">
+                    <div class="slot" data-rank="1">
+                        <div class="slot-label">第1名</div>
+                        <div class="slot-content" data-rank="1"></div>
+                    </div>
+                    <div class="slot" data-rank="2">
+                        <div class="slot-label">第2名</div>
+                        <div class="slot-content" data-rank="2"></div>
+                    </div>
+                    <div class="slot" data-rank="3">
+                        <div class="slot-label">第3名</div>
+                        <div class="slot-content" data-rank="3"></div>
+                    </div>
+                    <div class="slot" data-rank="4">
+                        <div class="slot-label">第4名</div>
+                        <div class="slot-content" data-rank="4"></div>
+                    </div>
+                    <div class="slot" data-rank="5">
+                        <div class="slot-label">第5名</div>
+                        <div class="slot-content" data-rank="5"></div>
+                    </div>
+                </div>
+
+                <div class="characters-grid" data-position="SG">
+                    <!-- SG职业角色卡片将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <!-- PG职业投票区域 -->
+            <div class="section position-section" data-position="PG">
+                <h2 class="section-title">🏀 PG职业排名</h2>
+                <div class="instruction-box">
+                    <p>💡 <strong>操作说明：</strong>直接点击角色卡片，自动正序排名（第1名→第2名→第3名→第4名→第5名）。每个职业独立排名，同一角色可参与多个职业排名！</p>
+                </div>
+                <div class="ranking-controls">
+                    <div class="ranking-status">
+                        <div class="status-text" data-position="PG">PG排名: 0 个角色</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-position="PG" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-secondary clear-btn" data-position="PG">清空PG排名</button>
+                    </div>
+                </div>
+
+                <div class="ranking-slots" data-position="PG">
+                    <div class="slot" data-rank="1">
+                        <div class="slot-label">第1名</div>
+                        <div class="slot-content" data-rank="1"></div>
+                    </div>
+                    <div class="slot" data-rank="2">
+                        <div class="slot-label">第2名</div>
+                        <div class="slot-content" data-rank="2"></div>
+                    </div>
+                    <div class="slot" data-rank="3">
+                        <div class="slot-label">第3名</div>
+                        <div class="slot-content" data-rank="3"></div>
+                    </div>
+                    <div class="slot" data-rank="4">
+                        <div class="slot-label">第4名</div>
+                        <div class="slot-content" data-rank="4"></div>
+                    </div>
+                    <div class="slot" data-rank="5">
+                        <div class="slot-label">第5名</div>
+                        <div class="slot-content" data-rank="5"></div>
+                    </div>
+                </div>
+
+                <div class="characters-grid" data-position="PG">
+                    <!-- PG职业角色卡片将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <!-- SW职业投票区域 -->
+            <div class="section position-section" data-position="SW">
+                <h2 class="section-title">🏀 SW职业排名</h2>
+                <div class="instruction-box">
+                    <p>💡 <strong>操作说明：</strong>直接点击角色卡片，自动正序排名（第1名→第2名→第3名→第4名→第5名）。每个职业独立排名，同一角色可参与多个职业排名！</p>
+                </div>
+                <div class="ranking-controls">
+                    <div class="ranking-status">
+                        <div class="status-text" data-position="SW">SW排名: 0 个角色</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-position="SW" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-secondary clear-btn" data-position="SW">清空SW排名</button>
+                    </div>
+                </div>
+
+                <div class="ranking-slots" data-position="SW">
+                    <div class="slot" data-rank="1">
+                        <div class="slot-label">第1名</div>
+                        <div class="slot-content" data-rank="1"></div>
+                    </div>
+                    <div class="slot" data-rank="2">
+                        <div class="slot-label">第2名</div>
+                        <div class="slot-content" data-rank="2"></div>
+                    </div>
+                    <div class="slot" data-rank="3">
+                        <div class="slot-label">第3名</div>
+                        <div class="slot-content" data-rank="3"></div>
+                    </div>
+                    <div class="slot" data-rank="4">
+                        <div class="slot-label">第4名</div>
+                        <div class="slot-content" data-rank="4"></div>
+                    </div>
+                    <div class="slot" data-rank="5">
+                        <div class="slot-label">第5名</div>
+                        <div class="slot-content" data-rank="5"></div>
+                    </div>
+                </div>
+
+                <div class="characters-grid" data-position="SW">
+                    <!-- SW职业角色卡片将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">💬 留言反馈</h2>
+                <div class="form-group">
+                    <label class="form-label">您的游戏ID（可选）</label>
+                    <input type="text" class="form-input" id="playerId" placeholder="请输入您的游戏ID">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">留言反馈</label>
+                    <textarea class="form-textarea" id="feedback" placeholder="请分享您对超特角色的看法和建议..."></textarea>
+                </div>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✅ 调查提交成功！感谢您的参与！
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                ❌ 提交失败，请重试
+            </div>
+
+            <div class="loading" id="loading">
+                <p>正在提交调查结果...</p>
+            </div>
+
+            <button class="submit-btn" id="submitBtn" disabled>
+                提交调查结果
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class QuickSurveyManager {
+            constructor() {
+                this.characters = {};
+                this.allCharacters = [];
+                this.rankings = {};
+                this.selectedCharacters = {}; // 每个职业的选中角色
+                this.clientId = this.generateClientId();
+                this.positions = ['C', 'PF', 'SF', 'SG', 'PG', 'SW'];
+                this.init();
+            }
+
+            async init() {
+                await this.checkVoteStatus();
+                await this.loadCharacters();
+                this.setupEventListeners();
+                this.updateUI();
+            }
+
+            generateClientId() {
+                // 生成浏览器指纹
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillText('Browser fingerprint', 2, 2);
+                
+                const fingerprint = [
+                    navigator.userAgent,
+                    navigator.language,
+                    screen.width + 'x' + screen.height,
+                    new Date().getTimezoneOffset(),
+                    canvas.toDataURL(),
+                    navigator.hardwareConcurrency || 'unknown',
+                    navigator.deviceMemory || 'unknown',
+                    navigator.platform
+                ].join('|');
+                
+                // 生成简单的哈希
+                let hash = 0;
+                for (let i = 0; i < fingerprint.length; i++) {
+                    const char = fingerprint.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // 转换为32位整数
+                }
+                
+                return 'fp_' + Math.abs(hash).toString(36);
+            }
+
+            async checkVoteStatus() {
+                try {
+                    const response = await fetch('http://localhost:5101/api/survey/check-voted', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ clientId: this.clientId })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success && result.hasVoted) {
+                        this.showVotedMessage();
+                        return;
+                    }
+                } catch (error) {
+                    console.error('检查投票状态失败:', error);
+                }
+            }
+
+            showVotedMessage() {
+                const container = document.querySelector('.container');
+                container.innerHTML = `
+                    <div class="header">
+                        <h1>🏀 老非喊你来给超特排名啦</h1>
+                        <p>兄弟们根据自己感受从综合性能来排序</p>
+                    </div>
+                    <div class="content" style="text-align: center; padding: 50px;">
+                        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 30px; margin: 20px;">
+                            <h2 style="color: #856404; margin-bottom: 20px;">🎉 您已经参与过投票！</h2>
+                            <p style="color: #856404; font-size: 16px; line-height: 1.6;">
+                                感谢您的参与！每人只能投票一轮，您的投票数据已经记录。<br>
+                                了解投票结果请加老非微信：laofei90186
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async loadCharacters() {
+                try {
+                    const response = await fetch('http://localhost:5101/api/characters');
+                    const data = await response.json();
+                    
+                    // 获取所有5-9代超特角色
+                    this.allCharacters = data.filter(char => char.gen >= 5 && char.gen <= 9);
+
+                    // 初始化排名和选中角色（按职业分组）
+                    this.rankings = {};
+                    this.selectedCharacters = {};
+                    
+                    this.positions.forEach(position => {
+                        this.rankings[position] = {};
+                        this.selectedCharacters[position] = null;
+                    });
+
+                } catch (error) {
+                    console.error('加载角色数据失败:', error);
+                }
+            }
+
+            setupEventListeners() {
+                // 为每个职业设置事件监听器
+                this.positions.forEach(position => {
+                    // 清空按钮事件
+                    document.querySelector(`[data-position="${position}"].clear-btn`).addEventListener('click', () => this.clearRankings(position));
+                });
+                
+                // 提交按钮事件
+                document.getElementById('submitBtn').addEventListener('click', () => {
+                    this.submitSurvey();
+                });
+            }
+
+            updateUI() {
+                this.renderAllCharacters();
+                this.positions.forEach(position => {
+                    this.updateRankingSlots(position);
+                    this.updateCharacterCards(position);
+                });
+                this.updateAllStatus();
+                this.updateSubmitButton();
+            }
+
+            renderAllCharacters() {
+                this.positions.forEach(position => {
+                    const grid = document.querySelector(`[data-position="${position}"].characters-grid`);
+                    // 所有职业都显示所有角色，去除职业限制
+                    const characters = this.allCharacters;
+                    
+                    const currentRankings = this.rankings[position] || {};
+                    
+                    grid.innerHTML = characters.map(char => {
+                        const rank = currentRankings[char.id];
+                        const isSelected = this.selectedCharacters[position] && this.selectedCharacters[position].id === char.id;
+                        const isUsed = currentRankings[char.id] !== undefined;
+                        
+                        return `
+                            <div class="character-card ${isSelected ? 'selected' : ''} ${isUsed ? 'used' : ''}" 
+                                 data-id="${char.id}" data-position="${position}" onclick="surveyManager.selectCharacter(${char.id}, '${position}')">
+                                <div class="character-name">${char.name}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    if (characters.length === 0) {
+                        grid.innerHTML = '<div class="empty-message">暂无超特角色</div>';
+                    }
+                });
+            }
+
+            selectCharacter(characterId, position) {
+                // 移除跨职业限制，每个职业独立排名
+                // 只检查当前职业是否已使用该角色
+                const currentRankings = this.rankings[position] || {};
+                if (currentRankings[characterId]) {
+                    alert('该角色已在当前职业排名中使用，请选择其他角色');
+                    return;
+                }
+                
+                const character = this.allCharacters.find(char => char.id === characterId);
+                if (!character) return;
+                
+                // 找到下一个可用的排名坑位（从第1名开始）
+                let nextRank = 1;
+                
+                // 找到第一个空的排名位置
+                for (let rank = 1; rank <= 5; rank++) {
+                    if (!Object.values(currentRankings).includes(rank)) {
+                        nextRank = rank;
+                        break;
+                    }
+                }
+                
+                // 如果所有排名都已满，提示用户
+                if (Object.keys(currentRankings).length >= 5) {
+                    alert('该职业的5个排名位置已满，请先清空排名或选择其他职业');
+                    return;
+                }
+                
+                // 设置排名
+                currentRankings[characterId] = nextRank;
+                
+                // 更新排名坑位显示
+                this.updateRankingSlots(position);
+                
+                // 更新角色卡片状态
+                this.updateCharacterCards(position);
+                
+                // 更新状态显示
+                this.updateAllStatus();
+                
+                // 更新提交按钮状态
+                this.updateSubmitButton();
+            }
+
+
+
+
+
+            clearRankings(position) {
+                if (confirm(`确定要清空${position}职业的所有排名吗？`)) {
+                    this.rankings[position] = {};
+                    this.selectedCharacters[position] = null;
+                    
+                    // 更新排名坑位显示
+                    this.updateRankingSlots(position);
+                    // 更新角色卡片状态
+                    this.updateCharacterCards(position);
+                    // 更新状态显示
+                    this.updateAllStatus();
+                    
+                    // 更新提交按钮状态
+                    this.updateSubmitButton();
+                }
+            }
+
+            updateRankingSlots(position) {
+                const currentRankings = this.rankings[position] || {};
+                const slotsContainer = document.querySelector(`[data-position="${position}"].ranking-slots`);
+                
+                // 清空所有坑位
+                slotsContainer.querySelectorAll('.slot-content').forEach(slotContent => {
+                    slotContent.innerHTML = '';
+                    slotContent.parentElement.classList.remove('filled');
+                });
+                
+                // 填充有排名的坑位
+                Object.entries(currentRankings).forEach(([charId, rank]) => {
+                    const character = this.allCharacters.find(char => char.id === parseInt(charId));
+                    if (character) {
+                        const slotContent = slotsContainer.querySelector(`[data-rank="${rank}"] .slot-content`);
+                        slotContent.innerHTML = `
+                            <div class="slot-character" data-char-id="${charId}" data-position="${position}" data-rank="${rank}">
+                                ${character.name}
+                                <span class="remove-btn" onclick="surveyManager.removeFromRanking(${charId}, '${position}')">×</span>
+                            </div>
+                        `;
+                        slotContent.parentElement.classList.add('filled');
+                    }
+                });
+            }
+
+            removeFromRanking(characterId, position) {
+                const currentRankings = this.rankings[position] || {};
+                if (currentRankings[characterId]) {
+                    delete currentRankings[characterId];
+                    
+                    // 重新排序剩余排名
+                    const sortedEntries = Object.entries(currentRankings).sort(([,a], [,b]) => a - b);
+                    const newRankings = {};
+                    sortedEntries.forEach(([charId, oldRank], index) => {
+                        newRankings[charId] = index + 1;
+                    });
+                    
+                    this.rankings[position] = newRankings;
+                    
+                    // 更新显示
+                    this.updateRankingSlots(position);
+                    this.updateCharacterCards(position);
+                    this.updateAllStatus();
+                    
+                    // 更新提交按钮状态
+                    this.updateSubmitButton();
+                }
+            }
+
+            updateCharacterCards(position) {
+                const currentRankings = this.rankings[position] || {};
+                // 所有职业都显示所有角色，去除职业限制
+                const characters = this.allCharacters;
+                
+                // 更新角色卡片的已使用状态（只针对当前职业）
+                characters.forEach(char => {
+                    const card = document.querySelector(`[data-position="${position}"][data-id="${char.id}"]`);
+                    if (card) {
+                        card.classList.toggle('used', currentRankings[char.id] !== undefined);
+                    }
+                });
+            }
+
+            updateAllStatus() {
+                this.positions.forEach(position => {
+                    const statusText = document.querySelector(`[data-position="${position}"].status-text`);
+                    const progressFill = document.querySelector(`[data-position="${position}"].progress-fill`);
+                    
+                    const currentRankings = this.rankings[position] || {};
+                    const totalRanked = Object.keys(currentRankings).length;
+                    
+                    statusText.textContent = `${position}排名: ${totalRanked} 个角色`;
+                    
+                    const progress = (totalRanked / 5) * 100;
+                    progressFill.style.width = `${progress}%`;
+                });
+            }
+
+            updateSubmitButton() {
+                const submitBtn = document.getElementById('submitBtn');
+                const hasRankings = Object.values(this.rankings).some(ranking => Object.keys(ranking).length > 0);
+                submitBtn.disabled = !hasRankings;
+            }
+
+            async submitSurvey() {
+                const submitBtn = document.getElementById('submitBtn');
+                const loading = document.getElementById('loading');
+                const successMessage = document.getElementById('successMessage');
+                const errorMessage = document.getElementById('errorMessage');
+
+                submitBtn.disabled = true;
+                loading.classList.add('show');
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+
+                try {
+                    // 转换排名格式
+                    const formattedRankings = {};
+                    Object.keys(this.rankings).forEach(position => {
+                        const positionRankings = this.rankings[position];
+                        const sortedRankings = Object.entries(positionRankings)
+                            .sort(([,a], [,b]) => a - b)
+                            .map(([charId, rank]) => {
+                                const char = this.allCharacters.find(c => c.id === parseInt(charId));
+                                return char;
+                            })
+                            .filter(char => char);
+                        
+                        if (sortedRankings.length > 0) {
+                            formattedRankings[position] = sortedRankings;
+                        }
+                    });
+
+                    const surveyData = {
+                        rankings: formattedRankings,
+                        playerId: document.getElementById('playerId').value.trim(),
+                        feedback: document.getElementById('feedback').value.trim(),
+                        clientId: this.clientId,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    const response = await fetch('http://localhost:5101/api/survey/submit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(surveyData)
+                    });
+
+                    if (response.ok) {
+                        successMessage.style.display = 'block';
+                        // 清空表单
+                        document.getElementById('playerId').value = '';
+                        document.getElementById('feedback').value = '';
+                        this.rankings = {};
+                        this.selectedCharacters = {};
+                        this.positions.forEach(position => {
+                            this.rankings[position] = {};
+                            this.selectedCharacters[position] = null;
+                        });
+                        this.updateUI();
+                    } else {
+                        throw new Error('提交失败');
+                    }
+                } catch (error) {
+                    console.error('提交调查失败:', error);
+                    errorMessage.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    loading.classList.remove('show');
+                }
+            }
+        }
+
+        // 初始化调查管理器
+        let surveyManager;
+        document.addEventListener('DOMContentLoaded', () => {
+            surveyManager = new QuickSurveyManager();
+        });
+    </script>
+</body>
+</html>

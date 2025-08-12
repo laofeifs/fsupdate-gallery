@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调查结果管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .position-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .position-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .ranking-table th,
+        .ranking-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ranking-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .ranking-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .feedback-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .feedback-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .feedback-player {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .feedback-time {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .feedback-content {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                margin-bottom: 5px;
+            }
+
+            .ranking-table {
+                font-size: 14px;
+            }
+
+            .ranking-table th,
+            .ranking-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 调查结果管理</h1>
+            <p>查看玩家调查数据和统计信息</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalParticipants">-</div>
+                <div class="stat-label">总参与人数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayParticipants">-</div>
+                <div class="stat-label">今日参与人数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalFeedbacks">-</div>
+                <div class="stat-label">留言反馈数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgRankings">-</div>
+                <div class="stat-label">平均排名数</div>
+            </div>
+        </div>
+
+        <button class="export-btn" onclick="exportData()">📥 导出数据</button>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="rankings">🏆 排名统计</button>
+            <button class="tab" data-tab="feedbacks">💬 留言反馈</button>
+            <button class="tab" data-tab="raw-data">📋 原始数据</button>
+        </div>
+
+        <div class="tab-content active" id="rankings-tab">
+            <div class="loading" id="rankingsLoading">正在加载排名数据...</div>
+            <div id="rankingsContent"></div>
+        </div>
+
+        <div class="tab-content" id="feedbacks-tab">
+            <div class="loading" id="feedbacksLoading">正在加载留言数据...</div>
+            <div id="feedbacksContent"></div>
+        </div>
+
+        <div class="tab-content" id="raw-data-tab">
+            <div class="loading" id="rawDataLoading">正在加载原始数据...</div>
+            <div id="rawDataContent"></div>
+        </div>
+    </div>
+
+    <script>
+        class SurveyResultsManager {
+            constructor() {
+                this.data = null;
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.loadData();
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+            }
+
+            switchTab(tabName) {
+                // 更新标签状态
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.tab === tabName);
+                });
+
+                // 更新内容显示
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.toggle('active', content.id === `${tabName}-tab`);
+                });
+
+                // 加载对应数据
+                this.loadTabData(tabName);
+            }
+
+            async loadData() {
+                try {
+                    console.log('开始加载数据...');
+                    
+                    const [statsResponse, resultsResponse] = await Promise.all([
+                        fetch('http://localhost:5101/api/survey/stats'),
+                        fetch('http://localhost:5101/api/survey/results')
+                    ]);
+
+                    console.log('API响应状态:', statsResponse.status, resultsResponse.status);
+
+                    const stats = await statsResponse.json();
+                    const results = await resultsResponse.json();
+
+                    console.log('解析的数据:', { stats, results });
+
+                    if (stats.success && results.success) {
+                        this.data = { stats: stats, results: results };
+                        this.updateStats();
+                        this.loadTabData('rankings');
+                        console.log('数据加载成功');
+                    } else {
+                        throw new Error('数据加载失败');
+                    }
+                } catch (error) {
+                    console.error('加载数据失败:', error);
+                    this.showError('数据加载失败，请刷新页面重试');
+                }
+            }
+
+            updateStats() {
+                const { stats, results } = this.data;
+                
+                document.getElementById('totalParticipants').textContent = stats.total_participants;
+                document.getElementById('todayParticipants').textContent = stats.today_participants;
+                
+                // 计算留言反馈数
+                const feedbackCount = results.surveys.filter(s => s.feedback && s.feedback.trim()).length;
+                document.getElementById('totalFeedbacks').textContent = feedbackCount;
+                
+                // 计算平均排名数
+                let totalRankings = 0;
+                let totalSurveys = 0;
+                results.surveys.forEach(survey => {
+                    Object.values(survey.rankings).forEach(rankings => {
+                        totalRankings += rankings.length;
+                    });
+                    totalSurveys++;
+                });
+                const avgRankings = totalSurveys > 0 ? Math.round(totalRankings / totalSurveys) : 0;
+                document.getElementById('avgRankings').textContent = avgRankings;
+            }
+
+            loadTabData(tabName) {
+                switch (tabName) {
+                    case 'rankings':
+                        this.renderRankings();
+                        break;
+                    case 'feedbacks':
+                        this.renderFeedbacks();
+                        break;
+                    case 'raw-data':
+                        this.renderRawData();
+                        break;
+                }
+            }
+
+            renderRankings() {
+                const content = document.getElementById('rankingsContent');
+                const loading = document.getElementById('rankingsLoading');
+                
+                if (!this.data) {
+                    loading.style.display = 'block';
+                    content.innerHTML = '';
+                    return;
+                }
+
+                loading.style.display = 'none';
+                
+                const { position_stats } = this.data.results;
+                const positions = ['C', 'PF', 'SF', 'SG', 'PG', 'SW'];
+                
+                content.innerHTML = positions.map(position => {
+                    const stats = position_stats[position];
+                    if (!stats || Object.keys(stats).length === 0) {
+                        return `
+                            <div class="position-section">
+                                <h3 class="position-title">${this.getPositionName(position)}</h3>
+                                <div class="empty-message">暂无排名数据</div>
+                            </div>
+                        `;
+                    }
+
+                    // 按平均排名排序
+                    const sortedChars = Object.values(stats).sort((a, b) => a.avg_rank - b.avg_rank);
+                    
+                    return `
+                        <div class="position-section">
+                            <h3 class="position-title">${this.getPositionName(position)}</h3>
+                            <table class="ranking-table">
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>角色名称</th>
+                                        <th>代际</th>
+                                        <th>平均排名</th>
+                                        <th>投票数</th>
+                                        <th>排名分布</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${sortedChars.map((char, index) => `
+                                        <tr>
+                                            <td>
+                                                <span class="rank-badge">${index + 1}</span>
+                                            </td>
+                                            <td>${char.name}</td>
+                                            <td>${char.gen}代超特</td>
+                                            <td><strong>${char.avg_rank}</strong></td>
+                                            <td>${char.total_votes}</td>
+                                            <td>${this.formatRankDistribution(char.rankings)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderFeedbacks() {
+                const content = document.getElementById('feedbacksContent');
+                const loading = document.getElementById('feedbacksLoading');
+                
+                if (!this.data) {
+                    loading.style.display = 'block';
+                    content.innerHTML = '';
+                    return;
+                }
+
+                loading.style.display = 'none';
+                
+                const feedbacks = this.data.results.surveys
+                    .filter(survey => survey.feedback && survey.feedback.trim())
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                if (feedbacks.length === 0) {
+                    content.innerHTML = '<div class="empty-message">暂无留言反馈</div>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="feedback-list">
+                        ${feedbacks.map(feedback => `
+                            <div class="feedback-item">
+                                <div class="feedback-header">
+                                    <span class="feedback-player">
+                                        ${feedback.player_id || '匿名玩家'}
+                                    </span>
+                                    <span class="feedback-time">
+                                        ${new Date(feedback.created_at).toLocaleString('zh-CN')}
+                                    </span>
+                                </div>
+                                <div class="feedback-content">${feedback.feedback}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            renderRawData() {
+                const content = document.getElementById('rawDataContent');
+                const loading = document.getElementById('rawDataLoading');
+                
+                if (!this.data) {
+                    loading.style.display = 'block';
+                    content.innerHTML = '';
+                    return;
+                }
+
+                loading.style.display = 'none';
+                
+                const surveys = this.data.results.surveys;
+                
+                if (surveys.length === 0) {
+                    content.innerHTML = '<div class="empty-message">暂无调查数据</div>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                        <h3 style="margin-bottom: 20px; color: #333;">原始调查数据 (共${surveys.length}条)</h3>
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 12px; line-height: 1.4;">${JSON.stringify(surveys, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+
+            getPositionName(position) {
+                const names = {
+                    'C': '中锋 (C)',
+                    'PF': '大前锋 (PF)',
+                    'SF': '小前锋 (SF)',
+                    'SG': '得分后卫 (SG)',
+                    'PG': '控球后卫 (PG)',
+                    'SW': '摇摆人 (SW)'
+                };
+                return names[position] || position;
+            }
+
+            formatRankDistribution(rankings) {
+                const distribution = {};
+                rankings.forEach(rank => {
+                    distribution[rank] = (distribution[rank] || 0) + 1;
+                });
+                
+                return Object.entries(distribution)
+                    .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                    .map(([rank, count]) => `第${rank}名:${count}次`)
+                    .join(', ');
+            }
+
+            showError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = message;
+                document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.stats-grid'));
+            }
+        }
+
+        function exportData() {
+            if (!window.surveyManager || !window.surveyManager.data) {
+                alert('暂无数据可导出');
+                return;
+            }
+
+            const data = window.surveyManager.data;
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `survey_results_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            window.surveyManager = new SurveyResultsManager();
+        });
+    </script>
+</body>
+</html>

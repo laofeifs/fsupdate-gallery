@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排名测试</title>
+    <style>
+        .ranking-slots {
+            display: flex;
+            gap: 10px;
+            margin: 20px;
+            flex-direction: row;
+        }
+        
+        .slot {
+            flex: 1;
+            min-width: 140px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 20px 15px;
+            text-align: center;
+        }
+        
+        .slot-label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        /* 第1名 - 金色 */
+        .slot[data-rank="1"] .slot-label {
+            color: #ffd700;
+        }
+        
+        /* 第2名 - 紫色 */
+        .slot[data-rank="2"] .slot-label {
+            color: #6f42c1;
+        }
+        
+        /* 第3名 - 蓝色 */
+        .slot[data-rank="3"] .slot-label {
+            color: #007bff;
+        }
+        
+        /* 第4名 - 绿色 */
+        .slot[data-rank="4"] .slot-label {
+            color: #28a745;
+        }
+        
+        /* 第5名 - 灰色 */
+        .slot[data-rank="5"] .slot-label {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <h1>排名坑位测试</h1>
+    
+    <div class="ranking-slots">
+        <div class="slot" data-rank="1">
+            <div class="slot-label">第1名</div>
+            <div class="slot-content"></div>
+        </div>
+        <div class="slot" data-rank="2">
+            <div class="slot-label">第2名</div>
+            <div class="slot-content"></div>
+        </div>
+        <div class="slot" data-rank="3">
+            <div class="slot-label">第3名</div>
+            <div class="slot-content"></div>
+        </div>
+        <div class="slot" data-rank="4">
+            <div class="slot-label">第4名</div>
+            <div class="slot-content"></div>
+        </div>
+        <div class="slot" data-rank="5">
+            <div class="slot-label">第5名</div>
+            <div class="slot-content"></div>
+        </div>
+    </div>
+    
+    <p>如果显示顺序是：第1名、第2名、第3名、第4名、第5名（从左到右），说明CSS正常。</p>
+</body>
+</html>

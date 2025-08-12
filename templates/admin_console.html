@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>管理控制台</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial; margin: 0; background:#f7f7f7; }
+    header { background:#ff6b35; color:#fff; padding:14px 18px; font-weight:700; }
+    .tabs { display:flex; gap:10px; padding:12px 16px; background:#fff; position:sticky; top:0; z-index:10; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    .tab { padding:8px 12px; border-radius:8px; cursor:pointer; background:#f2f2f2; }
+    .tab.active { background:#ffe1d3; color:#cc4f1e; font-weight:600; }
+    .container { padding:16px; }
+    .card { background:#fff; border:1px solid #eee; border-radius:12px; padding:14px; margin-bottom:16px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input, select, textarea { padding:8px 10px; border:1px solid #ddd; border-radius:8px; }
+    textarea { width:100%; min-height:90px; }
+    button { padding:8px 12px; border:none; background:#ff6b35; color:#fff; border-radius:8px; cursor:pointer; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px; border-bottom:1px solid #eee; text-align:left; }
+    .muted { color:#888; }
+    /* 确保表格列可见 */
+    td { min-width: 80px; }
+    td:nth-child(4) { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+    
+    /* 天梯管理样式 */
+    .tier-character-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+      gap: 15px; 
+      margin-top: 20px; 
+    }
+    .tier-character-card { 
+      border: 1px solid #e2e8f0; 
+      border-radius: 12px; 
+      padding: 15px; 
+      background: white; 
+      transition: all 0.2s; 
+    }
+    .tier-character-card:hover { 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+      transform: translateY(-2px); 
+    }
+    .tier-character-header { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      margin-bottom: 12px; 
+    }
+    .tier-character-avatar { 
+      width: 50px; 
+      height: 50px; 
+      border-radius: 8px; 
+      background-size: cover; 
+      background-position: center; 
+      border: 2px solid #e2e8f0; 
+    }
+    .tier-character-info { 
+      flex: 1; 
+    }
+    .tier-character-name { 
+      font-weight: 600; 
+      font-size: 16px; 
+      margin-bottom: 4px; 
+    }
+    .tier-character-meta { 
+      font-size: 12px; 
+      color: #64748b; 
+    }
+    .tier-score-controls { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    .tier-score-input { 
+      width: 80px; 
+      padding: 8px; 
+      border: 1px solid #d1d5db; 
+      border-radius: 6px; 
+      text-align: center; 
+      font-weight: 600; 
+    }
+    .tier-score-display { 
+      font-weight: 600; 
+      color: #4ade80; 
+      min-width: 40px; 
+    }
+    .tier-badge { 
+      padding: 4px 8px; 
+      border-radius: 4px; 
+      font-size: 12px; 
+      font-weight: 600; 
+      color: white; 
+    }
+    .tier-s { background: #ff6b6b; }
+    .tier-a { background: #ff8e53; }
+    .tier-b { background: #6bcf7f; }
+    .tier-c { background: #4dabf7; }
+    .tier-d { background: #adb5bd; }
+    .tier-status { 
+      position: fixed; 
+      top: 20px; 
+      right: 20px; 
+      padding: 12px 20px; 
+      border-radius: 8px; 
+      color: white; 
+      font-weight: 600; 
+      z-index: 1000; 
+      opacity: 0; 
+      transition: opacity 0.3s; 
+    }
+    .tier-success { background: #4ade80; }
+    .tier-error { background: #ef4444; }
+    .tier-filter-controls { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 15px; 
+      flex-wrap: wrap; 
+    }
+    .tier-filter-btn { 
+      padding: 8px 16px; 
+      border: 1px solid #d1d5db; 
+      background: white; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+    }
+    .tier-filter-btn.active { 
+      background: #4ade80; 
+      color: white; 
+      border-color: #4ade80; 
+    }
+  </style>
+  <script>
+    const apiBase = '';
+    function show(tab){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+      document.getElementById(tab).style.display='block';
+      
+      // 根据标签自动加载数据
+      if(tab === 'p-characters') {
+        loadCharacters();
+      } else if(tab === 'p-teams') {
+        loadTeams();
+      } else if(tab === 'p-rank') {
+        loadRanking();
+      } else if(tab === 'p-tier') {
+        loadTierManagement();
+      } else if(tab === 'p-tips') {
+        loadTips();
+      } else if(tab === 'p-events') {
+        loadEvents();
+      }
+    }
+
+    // 角色管理
+    async function loadCharacters(){
+      const gen = document.getElementById('charGenFilter').value || '';
+      const q = new URLSearchParams(); if(gen) q.append('gen', gen);
+      // 添加时间戳避免缓存
+      q.append('_t', Date.now());
+      console.log('加载角色数据，筛选条件:', gen);
+      const r = await fetch(apiBase + '/api/characters' + (q.toString()?`?${q}`:''));
+      const list = await r.json();
+      console.log('获取到角色数据:', list);
+      const tbody = document.getElementById('charTbody');
+      tbody.innerHTML = '';
+      list.forEach(c=>{
+        const tr = document.createElement('tr');
+        const rowHtml = `<td>${c.id}</td><td>${c.name}</td><td>${c.gen}</td>
+                        <td><span class="muted">${c.avatar_url||''}</span></td>
+                        <td>
+                          <button onclick="editChar(${c.id}, event)">编辑</button>
+                          <button onclick="delChar(${c.id})" style="background:#e74c3c">删除</button>
+                        </td>`;
+        tr.innerHTML = rowHtml;
+        tbody.appendChild(tr);
+        console.log(`渲染角色行: ID=${c.id}, 名称=${c.name}, 代际=${c.gen}, 行HTML长度=${rowHtml.length}`);
+      });
+      console.log('角色列表已更新，共', list.length, '个角色');
+    }
+
+    async function createCharacter(){
+      const name = document.getElementById('name').value.trim();
+      const gen = parseFloat(document.getElementById('gen').value);
+      const avatar_url = document.getElementById('avatar_url').value.trim();
+      const description = document.getElementById('description').value.trim();
+      if(!name){ alert('请输入名称'); return; }
+      const res = await fetch(apiBase + '/api/characters', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, gen, avatar_url, description }) });
+      const data = await res.json(); if(!data.success){ alert(data.error||'失败'); return; }
+      document.getElementById('name').value=''; document.getElementById('avatar_url').value=''; document.getElementById('description').value='';
+      loadCharacters();
+    }
+
+    async function delChar(id){ if(!confirm('确定删除该角色？')) return; await fetch(apiBase + '/api/characters/'+id, { method:'DELETE' }); loadCharacters(); }
+
+    async function editChar(id, event){
+      const r = await fetch(apiBase + '/api/characters/'+id); const c = await r.json();
+      
+      // 创建编辑对话框
+      const nameInput = prompt('角色名称', c.name); 
+      if(nameInput === null) return;
+      
+      const descInput = prompt('角色介绍', c.description || ''); 
+      if(descInput === null) return;
+      
+      const avatarInput = prompt('头像URL', c.avatar_url || ''); 
+      if(avatarInput === null) return;
+      
+      // 显示加载状态
+      const editBtn = event ? event.target : null;
+      const originalText = editBtn ? editBtn.textContent : '编辑';
+      if(editBtn) {
+        editBtn.textContent = '更新中...';
+        editBtn.disabled = true;
+      }
+      
+      try {
+        const response = await fetch(apiBase + '/api/characters/'+id, { 
+          method:'PUT', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify({ 
+            name: nameInput,
+            description: descInput,
+            avatar_url: avatarInput,
+            gen: c.gen
+          })
+        });
+        
+        const result = await response.json();
+        
+        if(response.ok && result.success) {
+          alert('角色信息已更新');
+          console.log('编辑成功，开始刷新列表...');
+          
+          // 直接重新获取该角色的最新数据
+          const updatedChar = await fetch(apiBase + '/api/characters/' + id);
+          const charData = await updatedChar.json();
+          console.log('获取到更新后的角色数据:', charData);
+          
+          // 强制刷新角色列表
+          await loadCharacters();
+          console.log('列表刷新完成');
+          
+          // 额外延迟刷新一次，确保数据更新
+          setTimeout(() => {
+            loadCharacters();
+            console.log('延迟刷新完成');
+          }, 500);
+        } else {
+          alert('更新失败：' + (result.error || '未知错误'));
+        }
+      } catch(error) {
+        alert('更新失败：' + error.message);
+      } finally {
+        // 恢复按钮状态
+        if(editBtn) {
+          editBtn.textContent = originalText;
+          editBtn.disabled = false;
+        }
+      }
+    }
+
+    // 战队管理
+    async function loadTeams(){
+      const gen = document.getElementById('teamGenFilter').value || '';
+      const q = new URLSearchParams(); 
+      if(gen) {
+        // 将字符串转换为数字，确保小数代际正确处理
+        const genNum = parseFloat(gen);
+        if (!isNaN(genNum)) {
+          q.append('gen', genNum);
+        }
+      }
+      const r = await fetch(apiBase + '/api/teams' + (q.toString()?`?${q}`:''));
+      const list = await r.json();
+      const tbody = document.getElementById('teamTbody');
+      tbody.innerHTML = '';
+      list.forEach(t=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${t.id}</td><td>${t.name}</td><td>${t.gen}</td>
+                        <td><span class="muted">${t.description||''}</span></td>
+                        <td>
+                          <button onclick="editTeam(${t.id}, event)">编辑</button>
+                          <button onclick="delTeam(${t.id})" style="background:#e74c3c">删除</button>
+                        </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function createTeam(){
+      const name = document.getElementById('teamName').value.trim();
+      const gen = parseFloat(document.getElementById('teamGen').value);
+      const description = document.getElementById('teamDescription').value.trim();
+      const logo_url = document.getElementById('teamLogo').value.trim();
+      if(!name){ alert('请输入战队名称'); return; }
+      const res = await fetch(apiBase + '/api/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, gen, description, logo_url }) });
+      const data = await res.json(); if(!data.success){ alert(data.error||'失败'); return; }
+      document.getElementById('teamName').value=''; document.getElementById('teamDescription').value=''; document.getElementById('teamLogo').value='';
+      loadTeams();
+    }
+
+    async function delTeam(id){ if(!confirm('确定删除该战队？')) return; await fetch(apiBase + '/api/teams/'+id, { method:'DELETE' }); loadTeams(); }
+
+    async function editTeam(id, event){
+      const r = await fetch(apiBase + '/api/teams/'+id); const t = await r.json();
+      
+      // 创建编辑对话框
+      const nameInput = prompt('战队名称', t.name); 
+      if(nameInput === null) return;
+      
+      const descInput = prompt('战队简介', t.description || ''); 
+      if(descInput === null) return;
+      
+      // 显示加载状态
+      const editBtn = event ? event.target : null;
+      const originalText = editBtn ? editBtn.textContent : '编辑';
+      if(editBtn) {
+        editBtn.textContent = '更新中...';
+        editBtn.disabled = true;
+      }
+      
+      try {
+        const response = await fetch(apiBase + '/api/teams/'+id, { 
+          method:'PUT', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify({ 
+            gen:t.gen, 
+            name:nameInput, 
+            description:descInput, 
+            logo_url:t.logo_url || '' 
+          })
+        });
+        
+        const result = await response.json();
+        
+        if(response.ok && result.success) {
+          alert('战队信息已更新');
+          loadTeams();
+        } else {
+          alert('更新失败：' + (result.error || '未知错误'));
+        }
+      } catch(error) {
+        alert('更新失败：' + error.message);
+      } finally {
+        // 恢复按钮状态
+        if(editBtn) {
+          editBtn.textContent = originalText;
+          editBtn.disabled = false;
+        }
+      }
+    }
+
+    // 排名管理
+    async function loadRanking(){
+      const cat = document.getElementById('rankCat').value;
+      const r = await fetch(apiBase + '/api/rankings?category=' + cat);
+      const data = await r.json();
+      document.getElementById('rankJson').value = data.items || '[]';
+    }
+    async function saveRanking(){
+      const cat = document.getElementById('rankCat').value;
+      const items_json = document.getElementById('rankJson').value || '[]';
+      const r = await fetch(apiBase + '/api/rankings', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ category:cat, items_json })});
+      const d = await r.json(); if(!d.success){ alert(d.error||'保存失败'); return; }
+      alert('已保存');
+    }
+
+    // 天梯管理
+    let tierCharacters = [];
+    let currentTierFilter = 'all';
+    
+    async function loadTierManagement(){
+      try {
+        // 获取所有代际的角色
+        const allCharacters = [];
+        for (let gen = 1; gen <= 9; gen++) {
+          const genResponse = await fetch(apiBase + '/api/characters?gen=gen' + gen);
+          const genData = await genResponse.json();
+          allCharacters.push(...genData);
+        }
+        
+        tierCharacters = allCharacters;
+        renderTierCharacters();
+        showTierStatus('角色数据加载成功', 'success');
+      } catch (error) {
+        console.error('加载角色数据失败:', error);
+        showTierStatus('加载角色数据失败', 'error');
+      }
+    }
+    
+    function renderTierCharacters() {
+      const grid = document.getElementById('tierCharacterGrid');
+      const filteredCharacters = currentTierFilter === 'all' 
+        ? tierCharacters 
+        : tierCharacters.filter(char => char.position === currentTierFilter);
+      
+      if (filteredCharacters.length === 0) {
+        grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">暂无角色数据</div>';
+        return;
+      }
+      
+      grid.innerHTML = filteredCharacters.map(char => {
+        const baseScore = 85 - (char.gen - 1) * 5;
+        const currentScore = char.score || baseScore;
+        const tier = getTierLevel(currentScore);
+        
+        return `
+          <div class="tier-character-card" data-id="${char.id}">
+            <div class="tier-character-header">
+              <div class="tier-character-avatar" style="background-image: url('${char.avatar_url ? apiBase + char.avatar_url : ''}')"></div>
+              <div class="tier-character-info">
+                <div class="tier-character-name">${char.name}</div>
+                <div class="tier-character-meta">${char.gen}代</div>
+              </div>
+              <span class="tier-badge tier-${tier.toLowerCase()}">${tier}</span>
+            </div>
+            <div class="tier-score-controls">
+              <label>评分:</label>
+              <input type="number" class="tier-score-input" value="${currentScore}" min="60" max="100" 
+                     onchange="updateTierScore(${char.id}, this.value)">
+              <span class="tier-score-display">${currentScore}分</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function getTierLevel(score) {
+      if (score >= 95) return 'S+';
+      if (score >= 90) return 'S';
+      if (score >= 85) return 'A+';
+      if (score >= 80) return 'A';
+      if (score >= 75) return 'B+';
+      if (score >= 70) return 'B';
+      return 'C';
+    }
+    
+    function updateTierScore(id, score) {
+      const character = tierCharacters.find(char => char.id === id);
+      if (character) {
+        character.score = parseInt(score);
+        // 更新显示
+        const card = document.querySelector(`[data-id="${id}"]`);
+        if (card) {
+          const tierBadge = card.querySelector('.tier-badge');
+          const scoreDisplay = card.querySelector('.tier-score-display');
+          const newTier = getTierLevel(score);
+          
+          tierBadge.className = `tier-badge tier-${newTier.toLowerCase()}`;
+          tierBadge.textContent = newTier;
+          scoreDisplay.textContent = `${score}分`;
+        }
+      }
+    }
+    
+    async function saveTierRankings() {
+      try {
+        const tierData = tierCharacters.map(char => ({
+          id: char.id,
+          name: char.name,
+          avatar_url: char.avatar_url,
+          position: char.position,
+          gen: char.gen,
+          score: char.score || (85 - (char.gen - 1) * 5)
+        }));
+        
+        // 按分数排序
+        tierData.sort((a, b) => b.score - a.score);
+        
+        const response = await fetch(apiBase + '/api/rankings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'ALL',
+            items_json: JSON.stringify(tierData)
+          })
+        });
+        
+        if (response.ok) {
+          showTierStatus('排名设置保存成功', 'success');
+        } else {
+          throw new Error('保存失败');
+        }
+      } catch (error) {
+        console.error('保存排名设置失败:', error);
+        showTierStatus('保存排名设置失败', 'error');
+      }
+    }
+    
+    function resetTierScores() {
+      if (confirm('确定要重置所有角色的评分为默认值吗？')) {
+        tierCharacters.forEach(char => {
+          char.score = 85 - (char.gen - 1) * 5;
+        });
+        renderTierCharacters();
+        showTierStatus('评分已重置', 'success');
+      }
+    }
+    
+    function previewTierList() {
+      const sortedCharacters = [...tierCharacters].sort((a, b) => 
+        (b.score || (85 - (b.gen - 1) * 5)) - (a.score || (85 - (a.gen - 1) * 5))
+      );
+      
+      const tiers = [
+        { name: 'S+', minScore: 95, color: '#ff6b6b' },
+        { name: 'S', minScore: 90, color: '#ff8e53' },
+        { name: 'A+', minScore: 85, color: '#ffd93d' },
+        { name: 'A', minScore: 80, color: '#6bcf7f' },
+        { name: 'B+', minScore: 75, color: '#4dabf7' },
+        { name: 'B', minScore: 70, color: '#9775fa' },
+        { name: 'C', minScore: 0, color: '#adb5bd' }
+      ];
+      
+      let preview = '<h3>天梯图预览</h3><div style="display: flex; flex-direction: column; gap: 15px;">';
+      
+      tiers.forEach(tier => {
+        const tierCharacters = sortedCharacters.filter(char => 
+          (char.score || (85 - (char.gen - 1) * 5)) >= tier.minScore
+        );
+        
+        if (tierCharacters.length > 0) {
+          preview += `
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: ${tier.color}20; border-radius: 8px;">
+              <span style="background: ${tier.color}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;">${tier.name}</span>
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                ${tierCharacters.map(char => `
+                  <span style="background: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                    ${char.name} (${char.score || (85 - (char.gen - 1) * 5)}分)
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+      });
+      
+      preview += '</div>';
+      
+      alert('天梯图预览已生成，请查看控制台');
+      console.log('天梯图预览:', preview);
+    }
+    
+    function showTierStatus(message, type) {
+      const status = document.getElementById('tierStatus');
+      status.textContent = message;
+      status.className = `tier-status tier-${type}`;
+      status.style.opacity = '1';
+      
+      setTimeout(() => {
+        status.style.opacity = '0';
+      }, 3000);
+    }
+    
+    function setTierFilter(filter) {
+      currentTierFilter = filter;
+      renderTierCharacters();
+    }
+
+    // 技巧管理
+    async function createTip(){
+      const title = document.getElementById('tipTitle').value.trim();
+      const category = document.getElementById('tipCat').value; if(!title){ alert('请输入标题'); return; }
+      const cover_url = document.getElementById('tipCover').value.trim();
+      const summary = document.getElementById('tipSummary').value.trim();
+      const content_md = document.getElementById('tipMd').value;
+      const r = await fetch(apiBase + '/api/tips', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, category, cover_url, summary, content_md })});
+      const d = await r.json(); if(!d.success){ alert(d.error||'失败'); return; }
+      document.getElementById('tipTitle').value=''; document.getElementById('tipCover').value=''; document.getElementById('tipSummary').value=''; document.getElementById('tipMd').value='';
+      loadTips();
+    }
+    async function loadTips(){
+      const cat = document.getElementById('tipListCat').value || '';
+      const r = await fetch(apiBase + '/api/tips' + (cat?`?category=${cat}`:'')); const list = await r.json();
+      const ul = document.getElementById('tipList'); ul.innerHTML='';
+      list.forEach(t=>{
+        const li = document.createElement('li');
+        li.innerHTML = `${t.title} <span class='muted'>[${t.category}]</span> <button onclick="delTip(${t.id})" style="background:#e74c3c">删除</button>`;
+        ul.appendChild(li);
+      });
+    }
+    async function delTip(id){ if(!confirm('删除该技巧？')) return; await fetch(apiBase + '/api/tips/'+id, { method:'DELETE' }); loadTips(); }
+
+    // 活动管理
+    async function createEvent(){
+      const title = document.getElementById('evtTitle').value.trim(); if(!title){ alert('请输入标题'); return; }
+      const cover_url = document.getElementById('evtCover').value.trim();
+      const time_range = document.getElementById('evtTime').value.trim();
+      const body_md = document.getElementById('evtMd').value;
+      const link = document.getElementById('evtLink').value.trim();
+      const r = await fetch(apiBase + '/api/events', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, cover_url, time_range, body_md, link })});
+      const d = await r.json(); if(!d.success){ alert(d.error||'失败'); return; }
+      document.getElementById('evtTitle').value=''; document.getElementById('evtCover').value=''; document.getElementById('evtTime').value=''; document.getElementById('evtMd').value=''; document.getElementById('evtLink').value='';
+      loadEvents();
+    }
+    async function loadEvents(){
+      const r = await fetch(apiBase + '/api/events'); const list = await r.json();
+      const ul = document.getElementById('evtList'); ul.innerHTML='';
+      list.forEach(e=>{
+        const li = document.createElement('li');
+        li.innerHTML = `${e.title} <span class='muted'>${e.time_range||''}</span> <button onclick="delEvent(${e.id})" style="background:#e74c3c">删除</button>`;
+        ul.appendChild(li);
+      });
+    }
+    async function delEvent(id){ if(!confirm('删除该活动？')) return; await fetch(apiBase + '/api/events/'+id, { method:'DELETE' }); loadEvents(); }
+
+         window.addEventListener('DOMContentLoaded', ()=>{ show('p-characters'); });
+  </script>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span>管理控制台</span>
+      <a href="/upload-avatar" target="_blank" style="text-decoration:none;background:#ff6b35;color:#fff;padding:6px 10px;border-radius:8px;">上传头像</a>
+    </div>
+  </header>
+  <div class="tabs">
+    <div class="tab active" data-tab="p-characters" onclick="show('p-characters')">角色管理</div>
+    <div class="tab" data-tab="p-teams" onclick="show('p-teams')">战队管理</div>
+    <div class="tab" data-tab="p-rank" onclick="show('p-rank')">职业排名</div>
+    <div class="tab" data-tab="p-tier" onclick="show('p-tier')">天梯管理</div>
+    <div class="tab" data-tab="p-tips" onclick="show('p-tips')">实用技巧</div>
+    <div class="tab" data-tab="p-events" onclick="show('p-events')">活动</div>
+  </div>
+
+  <div class="container">
+    <!-- 角色管理 -->
+    <section id="p-characters" class="panel">
+      <div class="card">
+        <h3>新增角色</h3>
+        <div class="row">
+          <input id="name" placeholder="角色名称" />
+          <select id="gen">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="3.5">3.5</option><option value="4">4</option><option value="4.5">4.5</option><option value="5">5</option><option value="5.5">5.5</option><option value="6">6</option><option value="6.5">6.5</option><option value="7">7</option><option value="7.5">7.5</option><option value="8">8</option><option value="9">9</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input id="avatar_url" placeholder="头像URL（/uploads/xxx 或完整URL）" style="min-width:320px;" />
+        </div>
+        <div style="margin-top:8px;">
+          <textarea id="description" placeholder="角色介绍（可填Markdown）"></textarea>
+        </div>
+        <div style="margin-top:8px;"><button onclick="createCharacter()">保存</button></div>
+      </div>
+      <div class="card">
+        <div class="row">
+          <label>筛选：</label>
+          <select id="charGenFilter" onchange="loadCharacters()"><option value="">全部代际</option><option>1</option><option>2</option><option>3</option><option>3.5</option><option>4</option><option>4.5</option><option>5</option><option>5.5</option><option>6</option><option>6.5</option><option>7</option><option>7.5</option><option>8</option><option>9</option></select>
+          <button onclick="loadCharacters()" style="margin-left:10px;">刷新列表</button>
+        </div>
+        <table style="margin-top:10px;">
+          <thead><tr><th>ID</th><th>名称</th><th>代际</th><th>头像</th><th>操作</th></tr></thead>
+          <tbody id="charTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 战队管理 -->
+    <section id="p-teams" class="panel" style="display:none;">
+      <div class="card">
+        <h3>新增战队</h3>
+        <div class="row">
+          <input id="teamName" placeholder="战队名称" />
+          <select id="teamGen">
+            <option value="1">1代</option><option value="2">2代</option><option value="3">3代</option><option value="3.5">3.5代</option><option value="4">4代</option><option value="4.5">4.5代</option><option value="5">5代</option><option value="5.5">5.5代</option><option value="6">6代</option><option value="6.5">6.5代</option><option value="7">7代</option><option value="7.5">7.5代</option><option value="8">8代</option><option value="9">9代</option>
+          </select>
+          <input id="teamLogo" placeholder="Logo URL（可选）" style="min-width:260px;" />
+        </div>
+        <div style="margin-top:8px;">
+          <textarea id="teamDescription" placeholder="战队简介"></textarea>
+        </div>
+        <div style="margin-top:8px;"><button onclick="createTeam()">保存</button></div>
+      </div>
+      <div class="card">
+        <div class="row">
+          <label>筛选：</label>
+          <select id="teamGenFilter" onchange="loadTeams()"><option value="">全部代际</option><option>1</option><option>2</option><option>3</option><option>3.5</option><option>4</option><option>4.5</option><option>5</option><option>5.5</option><option>6</option><option>6.5</option><option>7</option><option>7.5</option><option>8</option><option>9</option></select>
+        </div>
+        <table style="margin-top:10px;">
+          <thead><tr><th>ID</th><th>名称</th><th>代际</th><th>简介</th><th>操作</th></tr></thead>
+          <tbody id="teamTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 职业排名 -->
+    <section id="p-rank" class="panel" style="display:none;">
+      <div class="card">
+        <div class="row">
+          <label>分类：</label>
+          <select id="rankCat" onchange="loadRanking()"><option>C</option><option>PF</option><option>PG</option></select>
+        </div>
+        <p class="muted">items_json 结构示例：[{"name":"某角色","score":95,"avatar_url":"/uploads/.."}, ...]</p>
+        <textarea id="rankJson" placeholder='[ ]'></textarea>
+        <div style="margin-top:8px;"><button onclick="saveRanking()">保存</button></div>
+      </div>
+    </section>
+
+    <!-- 天梯管理 -->
+    <section id="p-tier" class="panel" style="display:none;">
+      <div class="card">
+        <h3>天梯排名管理</h3>
+        <p class="muted">自定义角色评分和天梯排名，支持全职业角色管理</p>
+        
+        <div class="row" style="margin-bottom: 15px;">
+          <button onclick="loadTierManagement()" style="background: #4ade80;">加载角色数据</button>
+          <button onclick="saveTierRankings()" style="background: #3b82f6;">保存排名设置</button>
+          <button onclick="resetTierScores()" style="background: #f59e0b;">重置评分</button>
+          <button onclick="previewTierList()" style="background: #8b5cf6;">预览天梯图</button>
+        </div>
+        
+        <div class="tier-filter-controls">
+          <button class="tier-filter-btn active" onclick="setTierFilter('all')">全部</button>
+          <button class="tier-filter-btn" onclick="setTierFilter('C')">C职业</button>
+          <button class="tier-filter-btn" onclick="setTierFilter('PF')">PF职业</button>
+          <button class="tier-filter-btn" onclick="setTierFilter('PG')">PG职业</button>
+          <button class="tier-filter-btn" onclick="setTierFilter('SG')">SG职业</button>
+          <button class="tier-filter-btn" onclick="setTierFilter('SF')">SF职业</button>
+        </div>
+        
+        <div class="tier-character-grid" id="tierCharacterGrid">
+          <div style="text-align: center; padding: 40px; color: #64748b;">
+            点击"加载角色数据"开始管理天梯排名
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 实用技巧 -->
+    <section id="p-tips" class="panel" style="display:none;">
+      <div class="card">
+        <div class="row">
+          <input id="tipTitle" placeholder="技巧标题" />
+          <select id="tipCat"><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select>
+          <input id="tipCover" placeholder="封面URL" style="min-width:260px;" />
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input id="tipSummary" placeholder="摘要" style="min-width:320px;" />
+        </div>
+        <textarea id="tipMd" placeholder="正文（Markdown）"></textarea>
+        <div style="margin-top:8px;"><button onclick="createTip()">保存</button></div>
+      </div>
+      <div class="card">
+        <div class="row"><label>筛选：</label><select id="tipListCat" onchange="loadTips()"><option value="">全部</option><option>PG</option><option>SG</option><option>SF</option><option>PF</option><option>C</option></select></div>
+        <ul id="tipList"></ul>
+      </div>
+    </section>
+
+    <!-- 活动 -->
+    <section id="p-events" class="panel" style="display:none;">
+      <div class="card">
+        <div class="row">
+          <input id="evtTitle" placeholder="活动标题" />
+          <input id="evtCover" placeholder="封面URL" />
+          <input id="evtTime" placeholder="时间范围，如 2025-09-01 ~ 2025-10-01" style="min-width:260px;" />
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input id="evtLink" placeholder="链接（可选）" style="min-width:320px;" />
+        </div>
+        <textarea id="evtMd" placeholder="活动正文（Markdown）"></textarea>
+        <div style="margin-top:8px;"><button onclick="createEvent()">保存</button></div>
+      </div>
+      <div class="card">
+        <ul id="evtList"></ul>
+      </div>
+    </section>
+
+    
+  </div>
+  
+  <!-- 天梯管理状态显示 -->
+  <div class="tier-status" id="tierStatus"></div>
+</body>
+</html>
+
+
